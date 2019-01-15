@@ -7,7 +7,7 @@ import os
 import random
 import signal
 import time
-
+import ssl
 __version__ = "1.3"
 PORT=5000
 HOSTNAME=os.getenv("HOSTNAME")
@@ -15,22 +15,16 @@ HOSTNAME=os.getenv("HOSTNAME")
 from flask import Flask, jsonify, request, Response
 app = Flask(__name__)
 
+context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+context.load_cert_chain('certs/server.crt', 'certs/server.key')
+
 ######## Quote storage
 #
 # Obviously, this would more typically involve a persistent backing store. That's not
 # really needed for a demo though.
 
 quotes = [
-  "Abstraction is ever present.",
-  "A late night does not make any sense.",
-  "A principal idea is omnipresent, much like candy.",
-  "Nihilism gambles with lives, happiness, and even destiny itself!",
-  "The light at the end of the tunnel is interdependent on the relatedness of motivation, subcultures, and management.",
-  "Utter nonsense is a storyteller without equal.",
-  "Non-locality is the driver of truth. By summoning, we vibrate.",
-  "A small mercy is nothing at all?",
-  "The last sentence you read is often sensible nonsense.",
-  "668: The Neighbor of the Beast."
+  "I am the Senate!"
 ]
 
 ######## Utilities
@@ -91,6 +85,7 @@ def standard_handler(f):
         rc = RichStatus.fromError("impossible error")
         session = request.headers.get('x-qotm-session', None)
         username = request.headers.get('x-authenticated-as', None)
+        logging.debug(request.headers)
 
         logging.debug("%s %s: session %s, username %s, handler %s" %
                       (request.method, request.path, session, username, func_name))
@@ -122,6 +117,7 @@ def standard_handler(f):
 
         if session:
             resp.headers['x-qotm-session'] = session
+            resp.headers['x-qotm-test'] = 'test'
 
         return resp
 
